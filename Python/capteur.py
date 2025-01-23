@@ -40,6 +40,44 @@ def generate_transaction():
 
     return transaction_data
 
+def send_to_kafka(producer, topic, transaction):
+    try:
+        producer.send(topic, value=transaction)
+        print(f"Transaction envoyée : {transaction}")
+    except Exception as e:
+        print(f"Erreur lors de l'envoi de la transaction : {e}")
+
+
+def main():
+    # Configuration du producteur Kafka
+    producer = KafkaProducer(
+        bootstrap_servers=['localhost:9092'],  # Remplacez par l'adresse de votre cluster Kafka
+        value_serializer=lambda v: json.dumps(v).encode('utf-8')  # Sérialisation des données au format JSON
+    )
+
+    topic = "transactions"  # Remplacez par le nom de votre sujet Kafka
+
+    try:
+        while True:
+            # Génération d'une transaction
+            transaction = generate_transaction()
+
+            # Envoi de la transaction à Kafka
+            send_to_kafka(producer, topic, transaction)
+
+            # Pause entre les envois (ajustez si nécessaire)
+            time.sleep(2)
+
+    except KeyboardInterrupt:
+        print("Arrêt du producteur Kafka.")
+
+    finally:
+        producer.close()
+
+
+if __name__ == "__main__":
+    main()
+
 
 #Envoyer la data sur votre conducktor
 
